@@ -1,0 +1,14 @@
+coupling:
+	input coupling of: M15K100
+	output coupling of: M15K070
+creating
+	training dataset with 5000 events
+	testing dataset with 5000 events
+kernel has initial guess of: 100
+model has n_restarts_optimizer of: 15
+model has an alpha of: 0.001
+model parameters: 0.316**2 * RBF(length_scale=327)
+training time: 20.74 minutes
+testing on training data time: 7.22 seconds
+testing on testing data time: 3.45 seconds
+plotting time: 12.48 seconds
