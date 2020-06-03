@@ -40,7 +40,6 @@ def lhe_to_dict(lhefilename = 'unweighted_events.lhe'):
         eventindex += 1
         if eventindex == 50: break
 
-    # print(events[0])
     return events
 
 def dict_to_root(evdict, tag):

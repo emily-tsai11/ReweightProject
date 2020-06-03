@@ -1,9 +1,13 @@
 from time import time
 import numpy as np
 from mod import print_time, get_re, plot_1D, plot_re
-import mod
 import sklearn.gaussian_process as gp
 import json, os, ROOT, argparse
+
+# define constants
+m_index = 0
+pt_index = 1
+pz_index = 2
 
 start = time()
 
@@ -16,7 +20,7 @@ args = parser.parse_args()
 config = json.loads(open(args.config).read())
 
 # load config file variables
-print('loading config file variables...')
+print('loading config file variables & data files...')
 start_load = time()
 
 with open(config['FILES']['events'], 'r') as f:
@@ -47,7 +51,7 @@ for ckey in ckeys:
 	output_coupling = 'M%2dK%03d' % (couplings[ckey]['Mf'], couplings[ckey]['Kf'])
 
 	# define save directory
-	save_dir = '../plots/ReweightPlots/GPR_RBF/' + input_coupling + 'to' + output_coupling + '_ntr' + str(num_train) + 'te' + str(num_test) + '_k' + str(kernel_l) + '_nro' + str(nro) + '_a' + str(a) + '/'
+	save_dir = '../plots/GPR_RBF/' + input_coupling + 'to' + output_coupling + '_ntr' + str(num_train) + 'te' + str(num_test) + '_k' + str(kernel_l) + '_nro' + str(nro) + '_a' + str(a) + '/'
 
 	# create save directory, unless it already exists
 	if not os.path.isdir(save_dir):
@@ -150,19 +154,19 @@ for ckey in ckeys:
 
 	# get individual parameter inputs
 	X_train_m = []
-	for i in range(len(X_train)): X_train_m.append(X_train[i][mod.m_index])
+	for i in range(len(X_train)): X_train_m.append(X_train[i][m_index])
 	X_test_m = []
-	for i in range(len(X_test)): X_test_m.append(X_test[i][mod.m_index])
+	for i in range(len(X_test)): X_test_m.append(X_test[i][m_index])
 
 	X_train_pt = []
-	for i in range(len(X_train)): X_train_pt.append(X_train[i][mod.pt_index])
+	for i in range(len(X_train)): X_train_pt.append(X_train[i][pt_index])
 	X_test_pt = []
-	for i in range(len(X_test)): X_test_pt.append(X_test[i][mod.pt_index])
+	for i in range(len(X_test)): X_test_pt.append(X_test[i][pt_index])
 
 	X_train_pz = []
-	for i in range(len(X_train)): X_train_pz.append(X_train[i][mod.pz_index])
+	for i in range(len(X_train)): X_train_pz.append(X_train[i][pz_index])
 	X_test_pz = []
-	for i in range(len(X_test)): X_test_pz.append(X_test[i][mod.pz_index])
+	for i in range(len(X_test)): X_test_pz.append(X_test[i][pz_index])
 
 	# saving training/testing raw data
 	print('saving raw data...')

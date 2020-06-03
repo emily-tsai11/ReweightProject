@@ -3,10 +3,6 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gs
 
 # define constants
-m_index = 0
-pt_index = 1
-pz_index = 2
-
 e_min = 0
 e_max = 6000
 e_bin_size = 20

@@ -1,1 +1,3 @@
-data/*
+data/unweighted_events.lhe
+data/events.json
+misc/

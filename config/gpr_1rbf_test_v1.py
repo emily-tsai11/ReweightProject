@@ -5,8 +5,8 @@
 	},
 	"NUM":
 	{
-		"train":		10,
-		"test":			10
+		"train":		1000,
+		"test":			1000
 	},
 	"COUPLINGS":
 	{
