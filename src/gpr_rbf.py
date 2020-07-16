@@ -2,6 +2,7 @@ from time import time
 import numpy as np
 from mod import print_time, get_re, plot_1D, plot_re
 import sklearn.gaussian_process as gp
+from sklearn.metrics.pairwise import rbf_kernel
 import json, os, ROOT, argparse
 
 # define constants
@@ -100,9 +101,25 @@ for ckey in ckeys:
 			X_test.append([Top['m'], _4vector.Pt(), Top['pz']])
 			y_test.append([e['wts'][output_coupling] / e['wts'][input_coupling]])
 
-	# defining model
-	kernel = gp.kernels.ConstantKernel(1.0, (1e-1, 1e3)) * gp.kernels.RBF(kernel_l, (1e-3, 1e3))
-	model = gp.GaussianProcessRegressor(kernel = kernel, n_restarts_optimizer = nro, alpha = a, normalize_y = False)
+	# get individual parameter inputs
+	X_train_m = [X_train[i][m_index] for i in range(len(X_train))]
+	X_test_m = [X_test[i][m_index] for i in range(len(X_test))]
+
+	X_train_pt = [X_train[i][pt_index] for i in range(len(X_train))]
+	X_test_pt = [X_test[i][pt_index] for i in range(len(X_test))]
+
+	X_train_pz = [X_train[i][pz_index] for i in range(len(X_train))]
+	X_test_pz = [X_test[i][pz_index] for i in range(len(X_test))]
+
+	# print(np.reshape(X_train_m, (len(X_train_m), 1)))
+	# print(np.reshape(y_train, (len(y_train), 1)))
+
+	# defining model (USED TO HAVE CONSTANT KERNEL)
+	kernel1 = gp.kernels.RBF(kernel_l, (1e-3, 1e3)) * gp.kernels.RBF(kernel_l, (1e-3, 1e3)) * gp.kernels.RBF(kernel_l, (1e-3, 1e3))
+	kernel2 = rbf_kernel(np.reshape(X_train_m, (len(X_train_m), 1)), np.reshape(y_train, (len(y_train), 1)))
+	# print(np.array(kernel1.__call__(np.reshape(X_train_m, (len(X_train_m), 1)), np.reshape(y_train, (len(y_train), 1)))))
+	# print(kernel2)
+	model = gp.GaussianProcessRegressor(kernel = kernel1, n_restarts_optimizer = nro, alpha = a, normalize_y = False)
 
 	print('kernel has initial guess of: ' + str(kernel_l))
 	print('model has n_restarts_optimizer of: ' + str(nro))
@@ -152,22 +169,6 @@ for ckey in ckeys:
 	re_train = get_re(y_train, y_predict_train)
 	re_test = get_re(y_test, y_predict_test)
 
-	# get individual parameter inputs
-	X_train_m = []
-	for i in range(len(X_train)): X_train_m.append(X_train[i][m_index])
-	X_test_m = []
-	for i in range(len(X_test)): X_test_m.append(X_test[i][m_index])
-
-	X_train_pt = []
-	for i in range(len(X_train)): X_train_pt.append(X_train[i][pt_index])
-	X_test_pt = []
-	for i in range(len(X_test)): X_test_pt.append(X_test[i][pt_index])
-
-	X_train_pz = []
-	for i in range(len(X_train)): X_train_pz.append(X_train[i][pz_index])
-	X_test_pz = []
-	for i in range(len(X_test)): X_test_pz.append(X_test[i][pz_index])
-
 	# saving training/testing raw data
 	print('saving raw data...')
 	start_save = time()
@@ -177,7 +178,6 @@ for ckey in ckeys:
 
 	print('saving raw data time: ' + print_time(time() - start_save))
 	f.write('saving raw data time: ' + print_time(time() - start_save) + '\n')
-
 
 	# creating and saving plots
 	print('creating and saving plots...')
@@ -210,7 +210,7 @@ for ckey in ckeys:
 
 	#--------------------------------------------------------------------------------#
 
-	# mass vs. weight training, mass distribution training prediction, mass distribution training prediction relative error
+	# mass vs. weight training, mass distribution training prediction
 	plot_1D(
 		False,
 		model_params,
@@ -239,7 +239,7 @@ for ckey in ckeys:
 			'relative\nerror (%)',
 		save_dir + 'm_predict_train_nostd.png')
 
-	re_train_m = plot_1D(
+	plot_1D(
 		True,
 		model_params,
 		X_train_m, y_train,
@@ -253,16 +253,7 @@ for ckey in ckeys:
 			'relative\nerror (%)',
 		save_dir + 'm_distribution_train.png')
 
-	plot_re(
-		fn,
-		re_train_m,
-		model_params,
-		input_coupling + '-->' + output_coupling + ' | rel err, $M_T$ distribution training prediction (' + str(num_train) + ')\n(m_predict - m_true) / m_true * 100 | restricted to $\pm$50%',
-		'relative error (%)',
-		save_dir + 'm_distribution_train_re.png')
-	fn += 1
-
-	# mass vs. weight testing, mass distribution testing prediction, mass distribution testing prediction relative error
+	# mass vs. weight testing, mass distribution testing prediction
 	plot_1D(
 		False,
 		model_params,
@@ -291,7 +282,7 @@ for ckey in ckeys:
 			'relative\nerror (%)',
 		save_dir + 'm_predict_test_nostd.png')
 
-	re_test_m = plot_1D(
+	plot_1D(
 		True,
 		model_params,
 		X_test_m, y_test,
@@ -305,18 +296,9 @@ for ckey in ckeys:
 			'relative\nerror (%)',
 		save_dir + 'm_distribution_test.png')
 
-	plot_re(
-		fn,
-		re_test_m,
-		model_params,
-		input_coupling + '-->' + output_coupling + ' | rel err, $M_T$ distribution testing prediction (' + str(num_test) + ')\n(m_predict - m_true) / m_true * 100 | restricted to $\pm$50%',
-		'relative error (%)',
-		save_dir + 'm_distribution_test_re.png')
-	fn += 1
-
 	#--------------------------------------------------------------------------------#
 
-	# pt vs. weight training, pt distribution training prediction, pt distribution training prediction relative error
+	# pt vs. weight training, pt distribution training prediction
 	plot_1D(
 		False,
 		model_params,
@@ -345,7 +327,7 @@ for ckey in ckeys:
 			'relative\nerror (%)',
 		save_dir + 'pt_predict_train_nostd.png')
 
-	re_train_pt = plot_1D(
+	plot_1D(
 		True,
 		model_params,
 		X_train_pt, y_train,
@@ -359,16 +341,7 @@ for ckey in ckeys:
 			'relative\nerror (%)',
 		save_dir + 'pt_distribution_train.png')
 
-	plot_re(
-		fn,
-		re_train_pt,
-		model_params,
-		input_coupling + '-->' + output_coupling + ' | rel err, $p_T$ distribution training prediction (' + str(num_train) + ')\n(m_predict - m_true) / m_true * 100 | restricted to $\pm$50%',
-		'relative error (%)',
-		save_dir + 'pt_distribution_train_re.png')
-	fn += 1
-
-	# pt vs. weight testing, pt distribution testing prediction, pt distribution testing prediction relative error
+	# pt vs. weight testing, pt distribution testing prediction
 	plot_1D(
 		False,
 		model_params,
@@ -397,7 +370,7 @@ for ckey in ckeys:
 			'relative\nerror (%)',
 		save_dir + 'pt_predict_test_nostd.png')
 
-	re_test_pt = plot_1D(
+	plot_1D(
 		True,
 		model_params,
 		X_test_pt, y_test,
@@ -411,18 +384,9 @@ for ckey in ckeys:
 			'relative\nerror (%)',
 		save_dir + 'pt_distribution_test.png')
 
-	plot_re(
-		fn,
-		re_test_pt,
-		model_params,
-		input_coupling + '-->' + output_coupling + ' | rel err, $p_T$ distribution testing prediction (' + str(num_test) + ')\n(m_predict - m_true) / m_true * 100 | restricted to $\pm$50%',
-		'relative error (%)',
-		save_dir + 'pt_distribution_test_re.png')
-	fn += 1
-
 	#--------------------------------------------------------------------------------#
 
-	# pz vs. weight training, pz distribution training prediction, pz distribution training prediction relative error
+	# pz vs. weight training, pz distribution training prediction
 	plot_1D(
 		False,
 		model_params,
@@ -451,7 +415,7 @@ for ckey in ckeys:
 			'relative\nerror (%)',
 		save_dir + 'pz_predict_train_nostd.png')
 
-	re_train_pz = plot_1D(
+	plot_1D(
 		True,
 		model_params,
 		X_train_pz, y_train,
@@ -465,16 +429,7 @@ for ckey in ckeys:
 			'relative\nerror (%)',
 		save_dir + 'pz_distribution_train.png')
 
-	plot_re(
-		fn,
-		re_train_pz,
-		model_params,
-		input_coupling + '-->' + output_coupling + ' | rel err, $p_z$ distribution training prediction (' + str(num_train) + ')\n(m_predict - m_true) / m_true * 100 | restricted to $\pm$50%',
-		'relative error (%)',
-		save_dir + 'pz_distribution_train_re.png')
-	fn += 1
-
-	# pz vs. weight testing, pz distribution testing prediction, pz distribution testing prediction relative error
+	# pz vs. weight testing, pz distribution testing prediction
 	plot_1D(
 		False,
 		model_params,
@@ -503,7 +458,7 @@ for ckey in ckeys:
 			'relative\nerror (%)',
 		save_dir + 'pz_predict_test_nostd.png')
 
-	re_test_pz = plot_1D(
+	plot_1D(
 		True,
 		model_params,
 		X_test_pz, y_test,
@@ -516,15 +471,6 @@ for ckey in ckeys:
 			'$p_z$ (GeV)',
 			'relative\nerror (%)',
 		save_dir + 'pz_distribution_test.png')
-
-	plot_re(
-		fn,
-		re_test_pz,
-		model_params,
-		input_coupling + '-->' + output_coupling + ' | rel err, $p_z$ distribution testing prediction (' + str(num_test) + ')\n(m_predict - m_true) / m_true * 100 | restricted to $\pm$50%',
-		'relative error (%)',
-		save_dir + 'pz_distribution_test_re.png')
-	fn += 1
 
 	#--------------------------------------------------------------------------------#
 

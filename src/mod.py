@@ -93,9 +93,6 @@ def plot_1D(as_hist, model_params, x, ax1_y1, ax1_l1, ax1_y2, ax1_yerr, ax1_l2, 
 	fig.savefig(dir)
 	plt.close(fig)
 
-	if as_hist:
-		return re
-
 # plot relative error
 def plot_re(fn, re, model_params, title, xlabel, dir):
 	plt.figure(fn)
