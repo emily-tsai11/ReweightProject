@@ -24,8 +24,11 @@ config = json.loads(open(args.config).read())
 print('loading config file variables & data files...')
 start_load = time()
 
-with open(config['FILES']['events'], 'r') as f:
-	events = json.load(f)
+# with open(config['FILES']['events'], 'r') as f:
+# 	events = json.load(f)
+
+# i hope this works
+config = json.load(open(config['FILES']['events']))
 
 num_train = config['NUM']['train']
 num_test = config['NUM']['test']
